@@ -1,32 +1,22 @@
-import requests
 
-from bs4 import BeautifulSoup
+from flask import Flask
+from flask import jsonify
+from config import FLASKS_CONFIGS
+from views import apply_views
 
 
-URL_BASE = "https://ipparaguay.com.py/"
+enviroment = FLASKS_CONFIGS['development']
 
-def main():
-    soup = None
-    str_date = "09-de-septiembre-2022"
-    uri = "resultados-de-quiniela-teete-del-{}/".format(str_date)
-    # TODO THIS SHOULD BE A "GET_POLLS" FUNCTION
-    try:
-        soup = BeautifulSoup(
-            requests.get(URL_BASE + uri, timeout=10,
-                         headers={'user-agent': 'Mozilla/5.0'}, verify=False).text, "html.parser")
-        polls_soup = soup.select("ol")
-        polls = {}
-        polls_indexes = ['morning', 'evening', 'night']
-        index = 0
-        for poll in polls_soup:
-            numbers = poll.select("li")
-            poll_index = polls_indexes[index]
-            polls[poll_index] = [(i + 1, x.get_text()) for i, x in enumerate(list(numbers))]
-            index += 1
-        return polls
-    except Exception as e:
-        print(str(e))
+
+def create_app(enviroment):
+    app = Flask(__name__)
+    app.config.from_object(enviroment)
+    apply_views(app)
+    return app
+
+
+app = create_app(enviroment)
 
 
 if __name__ == '__main__':
-    main()
+    app.run(debug=True)
